@@ -53,20 +53,42 @@ umd_courses |>
 ```
 
 **Q2** Find out the greatest number of times any individual class has been offered in our dataset. Your code must show the greatest number of classes first.
-**A2**
+**A2**145 classes have been offered 29 times. 
 
 ```{r}
+umd_courses |>
+    group_by(id) |>
+    summarise(
+        count_classes = n()
+        ) |>
+    arrange(desc(count_classes))
 ```
 
 **Q3** Count the number of courses for each instructor and department. Which instructor has taught the most?
-**A3**
+**A3**Jason Kuo has across all departments (change code to group by only instructor) but Keith Yearwood taught the most in any one department - in his case, Geographical Sciences. 
 
 ```{r}
+umd_courses |>
+    group_by(instructors, department) |>
+    summarise(
+        count_classes = n()
+        ) |>
+    arrange(desc(count_classes))
 ```
 
-**Q4** Given the results for Q3, what would have made it easier to find the answer? You don't have to know *how* to accomplish this; I want you to describe in words what would make the answer easier to see. How confident are you that the answer you got is the right one, and why? **A4**
+**Q4** Given the results for Q3, what would have made it easier to find the answer? You don't have to know *how* to accomplish this; I want you to describe in words what would make the answer easier to see. How confident are you that the answer you got is the right one, and why? **A4**Being able to cut out "N/A" and "Instructor:TBA" observations would make things much clearer, especially sorting by departments. I grouped by only instructor the first time I wrote my code, and say that Jason Kuo had taught the most classes. Adding the department grouping showed Keith Yearwood as described above. I'm confident in both answers because it seems straightforward but was just a bit confused by the mention of departments in the question.
 
-**Q5** Take one of the questions you listed in the final question of the pre_lab and try to answer it here in code. If you don't know how to fully answer it, write what code you can and describe in words what else you would need to do. If you got an answer, is it interesting? **A5**
+**Q5** Take one of the questions you listed in the final question of the pre_lab and try to answer it here in code. If you don't know how to fully answer it, write what code you can and describe in words what else you would need to do. If you got an answer, is it interesting? **A5**Q:  2.  What department is most popular, and when?
+
+A: Business and Management, in Fall 2024
+
 
 ```{r}
+umd_courses |>
+  group_by(department, term) |>
+  summarise(
+    count_classes = n(),
+    sum_seats = sum(seats)
+  ) |>
+  arrange(desc(sum_seats))
 ```
