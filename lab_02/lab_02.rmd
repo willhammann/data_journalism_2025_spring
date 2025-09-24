@@ -77,7 +77,7 @@ maryland_expenses_with_state <- maryland_expenses_with_state |>
   mutate (
     spending_location = case_when(
       state == "MD" ~ "In-state",
-      TRUE ~ "Out of state"
+      .default = "Out of state"
     )
   ) |>
   group_by(spending_location) |>
