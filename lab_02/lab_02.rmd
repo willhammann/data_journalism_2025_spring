@@ -1,0 +1,99 @@
+---
+title: "lab_02"
+author: "Derek Willis"
+date: "2025-01-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries and establish settings
+
+```{r}
+# Turn off scientific notation
+options(scipen=999)
+
+# Load the tidyverse. If you have not installed the tidyverse already, remove the # from the next line and run it first.  
+# install.packages('tidyverse')
+library(tidyverse)
+library(lubridate)
+```
+
+## Load Data
+
+Let's keep working with the UMD courses and Maryland campaign expense data we used in the pre_lab.
+
+```{r}
+umd_courses <- read_rds("data/umd_courses.rds")
+maryland_expenses <- read_csv("data/maryland_expenses.csv")
+```
+
+## Answer questions
+
+**Q1.** How many departments have offered the courses with "Climate" in the title and at least one seat? Which department has offered the most? **A1.**32 departments; Atmospheric and Oceanic Science offers the most at 93. 
+
+```{r}
+umd_courses |>
+  filter(seats >= 1, str_detect(title, "Climate")) |>
+  group_by(department) |>
+  summarise(count_climate = n()) |>
+  arrange(desc(count_climate)) |>
+  view()
+```
+
+**Q2.** Of the departments listed in A1, which one is the most interesting to you, and why? **A2.**I didn't expect Anthropology to have so many courses related to climate, and it's second with 51 counts. There's also one Germanic Studies course which sounds intriguing. 
+
+**Q3** Which departments offered the most courses in the Fall 2024 term? And which departments in that term have at least one syllabus posted? Answer both of those questions and then compare the top five departments - how are they different?
+
+**A3.**134 departments have one or more syllabus posted out of 196. Both sets have Business and Mangagement, School of Music, and Information Studies on their top five. Without the syllabus filter, English, and "Teaching and Learning, Policy and Leadership" also make it. With said filter, Economics flies up to second, and "Engineering, Professional Masters" appears at fifth. 
+
+```{r}
+umd_courses |>
+  filter(term == 202408, syllabus_count >= 1) |>
+  group_by(department) |>
+  summarise(count_fall24 = n()) |>
+  arrange(desc(count_fall24)) |>
+  view()
+```
+
+**Q4.** Using the Maryland campaign expenses data, change the datatype of the expenditure_date column so that it is a date and not a chr, saving the result as a new dataframe. Then create a new column for the month based on expenditure_date. Then write code that shows total amount spent each month by Wes Moore's committee (you'll need to search the data to find the exact name, and we're not looking in payee_name). Write a sentence describing the pattern of spending over time. **A4.**The spending increased over time generally, with three extreme spending months in the millions in the last six months of the race.
+
+```{r}
+maryland_expenses_new <- maryland_expenses |>   
+  mutate(expenditure_date=mdy(expenditure_date)) |>
+  mutate(month = floor_date(expenditure_date, "month")) |>
+  filter(str_detect(committee_name, "Moore  Wes For Maryland")) |>
+  group_by(month) |>
+  summarise(total_amount = sum(amount)) |>
+  arrange(month)
+```
+
+**Q5.** Using case_when(), create a column in the Maryland expenses data called `spending_location` indicating whether each record spent money in Maryland or outside Maryland. For records that are in Maryland, make the new column's value "In-state" and for all others, make it "Out of state". Then write code that shows the total amount of money spent in each category and describe the results. You can do this in one statement or break it up into two statements (saving the new column to your dataframe). **A5**Used the "with_state" dataset from the pre_lab for ease. 
+
+```{r}
+maryland_expenses_with_state <- maryland_expenses_with_state |>
+  mutate (
+    spending_location = case_when(
+      state == "MD" ~ "In-state",
+      TRUE ~ "Out of state"
+    )
+  ) |>
+  group_by(spending_location) |>
+  summarise(total = sum(amount)) |>
+  arrange(desc(total))
+```
+
+**Q6.** Choose your own adventure: using either the UMD courses or campaign expenses data, ask and answer a question that is different than the previous ones. You can use one of the ones you provided in the pre_lab. **A6.**Create fields for large or small expenses.
+
+```{r}
+maryland_expenses_q6 <- maryland_expenses |>
+  mutate(
+    expense_size = case_when(
+      amount < 1000 ~ "Small",
+      amount >= 1000 & amount < 3000 ~ "Medium",
+      amount >= 3000 ~ "Large"
+    )
+  )
+```
