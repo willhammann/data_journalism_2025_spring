@@ -50,17 +50,29 @@ view(acs5_2021)
 
 ## Answer questions
 
-**Q1** What is the Maryland jurisdiction with the lowest median age, according to the ACS 2023 5-year estimates? You will need to find the variable for median age first. **A1**
+**Q1** What is the Maryland jurisdiction with the lowest median age, according to the ACS 2023 5-year estimates? You will need to find the variable for median age first. **A1**Baltimore City
 
 ```{r}
 acs5_2023 <- load_variables(2023, "acs5", cache = TRUE)
 view(acs5_2023)
 
+md_median_age_2023 <- get_acs(
+  geography = "county", 
+  state = "MD",
+  variables = c(median_age = "B01002_001"),
+  year = 2023,
+  survey = "acs5"
+) |>
+  arrange(estimate)
+
+md_median_age_2023
 ```
 
-**Q2** Which Maryland counties have a median age of at least 50? You can use the dataframe you just made to answer this, but you must write code to display only those counties with a median age of at least 50. **A2**
+**Q2** Which Maryland counties have a median age of at least 50? You can use the dataframe you just made to answer this, but you must write code to display only those counties with a median age of at least 50. **A2**Talbot and Worcester County
 
 ```{r}
+md_median_age_2023 |>
+  filter(estimate >= 50)
 ```
 
 **Q3** We're interested in knowing more about Montgomery County zip codes where overdose calls are coming from and the demographic characteristics they possess. In particular, we want to calculate a rate of calls per 1,000 population. To do this, you'll need to:
@@ -86,7 +98,7 @@ above_18 <- get_acs(
   survey = "acs5"
 )
 
-x911 |>
+per_capita_911 <- x911 |>
   group_by(zip) |>
   summarise(calls = n()) |>
   mutate(zip = as.character(zip)) |>
@@ -98,11 +110,22 @@ x911 |>
 
 **Q4** Using [CensusReporter.org](https://censusreporter.org/), examine the zip codes with the highest and lowest rates and compare and contrast their demographic profiles. Is there a story here?
 
-**A4**
+**A4**The zip code in Gaithersburg is 47% Hispanic and 47% foreign-born, while Laurel's dominant race is Black at 45% and only has 31% foreign-born residents. Gaithersburg has a signifcantly lower rate of residents with high school or bachelor degrees. It has 3.8% more people below the poverty line and around $18000 less median income.
+
+With all those statistics, it makes sense that there are more overdoses in the Gaithersburg zip code. 
 
 **Q5** Go back to your joined dataframe from Q3 and add two more columns representing the minimum and maximum populations based on the estimate and margin of error, then calculate per capita rates for each. Do you get the same two zip codes for the highest and lowest as you did before? Does that give you more or less confidence in your answers to Q3?
 
-**A5**
+**A5**I did get the same answers, so yes it does give me more confidence. 
 
 ```{r}
+per_capita_911_moe <- per_capita_911 |>
+  mutate(
+    pop_min = estimate - moe,
+    pop_max = estimate + moe,
+    calls_per_1k_min = calls / pop_max * 1000,
+    calls_per_1k_max = calls / pop_min * 1000,
+  )
+
+per_capita_911_moe
 ```

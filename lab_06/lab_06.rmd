@@ -48,20 +48,22 @@ maryland_zcta <- read_csv("data/maryland_zcta.csv") |>
   rename(zip_code = zcta5n) |>
   mutate(zip_code = as.character(zip_code))
 
-  baltimore_911 |>
-# or x911?
-
-
-
+baltimore_join <- baltimore_911 |>
+  left_join(maryland_zcta, by="zip_code")
 ```
 
 ## Answer questions
 
 Q1. Let's start with our data from Allegany, Cecil and Carroll counties. Write code to generate a dataframe that shows the total number of calls for each county. What's the order of counties from most calls to least?
 
-A1.
+A1. Carroll, Cecil, Allegany
 
 ```{r}
+carroll_911 <- carroll_911 |>
+  clean_names()
+
+x911 <- bind_rows(list(allegany_911, cecil_911, carroll_911))
+
 x911 |>
   group_by(county) |>
   summarise(calls = n()) |>
@@ -72,18 +74,20 @@ Q2. In your combined dataframe that you used in A1, add a column for the month o
 
 Then calculate the most calls per county and location. Which location had the most calls - where and what is that location?
 
-A2.
+A2. August 2022 in Cecil County saw the most calls of a county in a month, at 55. That row is an outlier in that there are 8 other months in different counties until Cecil appears again at 42 calls in May. The data ranges from 17-55 calls and decreases very gradually, with the largest consecutive differences being 5 calls down fromm the August in Cecil to the runner-up of 50 calls the same month in Allegany, and from 23 calls September in Carroll to 18 calls January in Allegany - the second lowest number in the set. 
+The location with the most calls was 314 GROVE NECK RD EARLEVILLE, MD in Cecil County. That's an inpatient rehab center on the Eastern Shore. 
 
 ```{r}
 x911 |>
   mutate(month = floor_date(date, "month")) |>
   group_by(county, month) |>
-  summarise(calls = n())
-  filter(county == "Allegany")
-  ggplot(aes(x = month, y = calls))  +
-  geom_line() +
-  geom_point()
-  #ggplot etc. not necessary to submit; useful for visualization
+  summarise(calls = n()) |>
+  arrange(desc(calls))
+
+x911 |> 
+  group_by(county, location) |>
+  summarise(calls = n()) |>
+  arrange(desc(calls))
 ```
 
 Q3. Let's turn to the Baltimore City data. You're interested in exploring calls in zip codes with a high percentage of children under 18. Write code to isolate calls in zip codes where the percentage of under 18 population is at least 75% and then show the zip code and population and how many calls occurred in each of those zip codes.
@@ -94,28 +98,52 @@ Add a column to your code that calculates the number of calls per 1,000 people f
 
 Which zip code has the highest rate of calls per 1,000 people? Find the neighborhoods in that zip code that are listed in the data - you can use group_by or distinct to do this. What are some of those neighborhoods, and what else can you tell me about the population there?
 
-A3.
+A3. The zip codes are largely in northern inner city Baltimore around Druid Hill. 21217 has the highest rate per capita. There are 16 neighborhoods with an address related to a call in the dataset with this zip code, but Penn North, Sandtown-Winchester and Upton have 177, 174 and 163 calls respectively, with a sharp fall off and varied counts thereafter. The zip code is overwhelmingly black at 86.4%, with 81.% under 18 and 70% rent for living. 
 
 ```{r}
-pct_under_18_zips <- maryland_zcta |>
-  filter(pct_under_18 >= 75)
-
-baltimore_calls_by_zip |>
-  group_by(zip_code) |>
-  summarise(calls = n())
-
-pct_under_18_zips |>
-  inner_join(baltimore_calls_by_zip) |>
+baltimore_18 <- baltimore_join |>
+  filter(pct_under_18 >= 75) |>
+  group_by(zip_code, population) |>
+  summarise(calls = n()) |>
   mutate(calls_per_capita = calls/population*1000) |>
   select(zip_code, population, calls, calls_per_capita) |>
   arrange(desc(calls_per_capita))
-#per capita rate of 1000 chosen because 100 has less than 1 per capita for some rows, not representative.
+
+baltimore_join |>
+  filter(zip_code == "21217") |>
+  group_by(neighborhood) |>
+  summarise(calls = n()) |>
+  arrange(desc(calls))
 ```
 
 Q4. Choose your own adventure: I want you to come up with a question you could ask of the Baltimore City data that combines both the calls and the demographic information. You must use both demographics and the overdose call data in your work.
 
-A4:
+A4: How do rates of overdose calls differ in majority white versus majority black zip codes?
 
 ```{r}
+balt_majority_black <- baltimore_join |>
+  filter(pct_black_non_hispanic >= 50) |>
+  group_by(zip_code, population) |>
+  summarise(calls = n()) |>
+  mutate(calls_per_capita = calls/population*10000) |>
+  select(zip_code, population, calls, calls_per_capita) |>
+  arrange(desc(calls_per_capita))
 
+balt_majority_white <- baltimore_join |>
+  filter(pct_white_non_hispanic >= 50) |>
+  group_by(zip_code, population) |>
+  summarise(calls = n()) |>
+  mutate(calls_per_capita = calls/population*10000) |>
+  select(zip_code, population, calls, calls_per_capita) |>
+  arrange(desc(calls_per_capita))
+
+balt_combined <- bind_rows(
+  balt_majority_black |>
+    mutate(majority_race = "Black"),
+  balt_majority_white |>
+    mutate(majority_race = "White")
+) |>
+  arrange(desc(calls_per_capita))
+
+balt_combined
 ```
