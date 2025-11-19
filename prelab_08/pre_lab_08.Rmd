@@ -70,7 +70,7 @@ With ggplot, the first thing we'll always do is draw a blank canvas that will co
 
 ### Task 4: Create an empty ggplot container
 
-**Task** Run the following code. Explain what you see after running the code in the space below. **Answer**
+**Task** Run the following code. Explain what you see after running the code in the space below. **Answer**Just a white plane.
 
 ```{r}
 baltco_911_calls_by_month |>
@@ -198,7 +198,6 @@ baltco_911_calls_by_month |>
     x = "month",
     y = "total calls",
     caption = "source: Baltimore County"
-    
   )
 ```
 
