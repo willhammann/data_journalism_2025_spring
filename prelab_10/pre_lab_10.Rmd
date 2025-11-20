@@ -88,6 +88,9 @@ md_zips |>
   ggplot() +
   geom_sf() +
   theme_minimal()
+
+library(mapview)
+mapview(md_zips)
 ```
 
 Each shape is a zip code, with the boundaries plotted according to its degrees of longitude and latitude.

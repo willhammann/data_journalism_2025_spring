@@ -32,28 +32,26 @@ library(ggplot2)
 
 You MUST do the following things when answering this question: \* Load the md_gov_county.csv and md_gov_county_18.csv files from the data folder \* Join those dataframes, specifying the join column. \* Add columns to generate percentages for Cox and Hogan. \* Export that joined dataframe to a CSV file using `write_csv`. \* Using that exported CSV, make a chart with Datawrapper. What kind of chart is up to you, so experiment with a few kinds of charts to see what answers the question above in the clearest way. Your chart MUST: \* Have a title, description and source that tells readers about the data. The title and description should highlight the most newsworthy or important aspect. \* Easily readable labels and values \* Publish your chart \* Describe your thought process below - why you chose to make the chart you did - and add the URL of your chart.
 
-**A1.**
+**A1**Hogan's 2018 run for governor saw much larger success in blue counties like Prince George's and Montgomery, despite being a Republican. Dan Cox in 2018 did not replicate his results. Link: https://www.datawrapper.de/_/ttDdz/
 
 ```{r}
 md_gov_county_22 <- read.csv("data/md_gov_county.csv") |>
-  mutate(GEOID = as.character(GEOID))
+  mutate(GEOID = as.character(GEOID)) |>
+  clean_names()
 
 md_gov_county_18 <- read.csv("data/md_gov_county_18.csv") |>
-  mutate(GEOID = as.character(GEOID))
+  mutate(GEOID = as.character(GEOID)) |>
+  clean_names()
 
 md_gov_cox_hogan <- md_gov_county_22 |>
-  left_join(md_gov_county_18, by = c("GEOID")) |>
-  clean_names() |>
+  left_join(md_gov_county_18, by = "geoid") |>
   mutate(
-    total_votes_22 = cox + moore + lashar + wallace + harding + sefcik + write_ins_x,
+    total_votes_22 = cox + moore + lashar + wallace + harding + sefcik + write_ins.x,
     percent_cox = cox / total_votes_22 * 100,
-    total_votes_18 = hogan + jealous + quinn + schlakman + write_ins_y,
+    total_votes_18 = hogan + jealous + quinn + schlakman + write_ins.y,
     percent_hogan = hogan / total_votes_18 * 100
-  )
-
-md_gov_cox_hogan <- md_gov_cox_hogan |>
-  select(-county_y) |>
-  rename(county = county_x, write_ins_cox = write_ins_x, write_ins_hogan = write_ins_y)
+  ) |>
+  select(county = county.x, cox, percent_cox, hogan, percent_hogan)
 
 write.csv(md_gov_cox_hogan, "data/md_gov_cox_hogan.csv", row.names = FALSE)
 ```
@@ -64,9 +62,17 @@ HINT: In Datawrapper's "Check and Describe" tab, you can click on a column to ge
 
 What do you think the story here is? Put the answer below along with the URL of your chart.
 
-**A2.**
+**A2.**Mail-in voting took over in 2020 as a result of the pandemic. Link: https://www.datawrapper.de/_/WT1C1/ 
 
 ```{r}
+votes_by_type <- read_csv("data/md_votes_by_type.csv") |>
+  clean_names() |>
+  mutate(
+    early_percent = early/total,
+    election_day_percent = election_day/total,
+    mail_percent = mail/total)
+    
+write.csv(votes_by_type, "data/votes_by_type.csv", row.names = FALSE)
 ```
 
 **Q3.** You want to know more about the geography of 911 overdose calls in Montgomery County, Maryland, in 2022. To do that, you'll make a choropleth map in Datawrapper. You will need to:
@@ -81,7 +87,14 @@ What do you think the story here is? Put the answer below along with the URL of 
 
 What do you think the story here is, and what would you want to know more about? Put the answer below along with the URL of your map.
 
-**A3.**
+**A3.**Biggest proportion of calls are in Silver Spring and Germantown. I'd want to know more about demographics in those areas or other statistics. Link: https://www.datawrapper.de/_/WXj7x/
 
 ```{r}
+mc_ods_2022 <- read_csv("data/montgomery_2022_overdoses.csv") |>
+  group_by(zip) |>
+  summarise(calls = n()) |>
+  mutate(
+    percent = round(calls / sum(calls) * 100, 2)
+  ) |>
+  write.csv("data/mc_ods_2022.csv")
 ```
