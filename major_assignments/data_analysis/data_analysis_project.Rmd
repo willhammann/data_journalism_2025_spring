@@ -93,8 +93,16 @@ In this notebook, we are coding five sentences using the state data.
 
 ```{r}
 # Put code here
-md_forclosures_long <- md_foreclosure_notices_zipcode |>
+md_foreclosures_long <- md_foreclosure_notices_zipcode |>
   pivot_longer(cols = contains("_"), names_to = "month", values_to = "foreclosures") |>
+  mutate(
+    month = dmy(paste("01", str_replace(month, "_", " "))),
+    year = year(month)
+  )
+
+# Use above dataframe for analysis but don't modify - date columns for month and year made and pivoted for easier use
+  
+md_foreclosures_summary <- md_foreclosures_long |>
   group_by(zip) |>
   summarise(total = sum(foreclosures, na.rm = TRUE),
             months = n(),
@@ -102,20 +110,29 @@ md_forclosures_long <- md_foreclosure_notices_zipcode |>
   ) |>
   arrange(desc(total))
 # Display results of code below this codeblock
-md_forclosures_long
+md_foreclosures_summary
 
 ```
 
 ### Sentence 2
 
 * **What month has the highest number of foreclosure notices? What about year? Are there any differences or similarities between the month that has the highest and the year that has the highest? Why might this be?**
-* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+* **XXXX**: 
 
 ```{r}
 # Put code here
+md_foreclosures_long |>
+  group_by(month) |>
+  summarise(total = sum(foreclosures, na.rm = TRUE),
+  ) |>
+  arrange(desc(total))
 
-
-# Display results of code below this codeblock
+md_foreclosures_long |>
+  group_by(year) |>
+  summarise(total = sum(foreclosures, na.rm = TRUE),
+  ) |>
+  arrange(desc(total))
+# Results in tibbles
 
 ```
 
