@@ -1,0 +1,168 @@
+---
+title: "Data Analysis Project"
+author: "Group 3"
+date: "2025-11-22"
+output:
+  html_document:
+    theme: cerulean
+    highlight: pygments
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction 
+
+In this notebook, we are coding Maryland Notices of Intent to Foreclose by Zip Code from Maryland's Open Data Portal. Link to URL: <https://opendata.maryland.gov/Housing/Maryland-Notices-of-Intent-to-Foreclose-by-Zip-Cod/ftsr-vapt/about_data> 
+
+## Load libraries
+
+Loading required libraries for this analysis.
+
+```{r echo=FALSE, message=FALSE}
+options(scipen=999) 
+
+library(readr)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(tidycensus)
+```
+
+## Load and Cleaning Data
+
+In this section, describe the source of the data, write a basic data dictionary for data you are working with, and discuss any caveats or issues you discovered working with this data. 
+
+About: The Maryland Notices of Intent to Forclose by Zip Code dataset contains 53 columns and 563 rows of data (updates periodically). Each row represents a single Maryland zip code, and the columns correspond to months from July 2021 through October 2025, containing the number of foreclosure notices reported for each zip code during that month. The first column is 'zip,' which identifies the zip code. The remaining 52 columns correspond to monthly foreclosure counts. The dataset was originally created on July 12, 2022. 
+
+The dataset is compiled from a third-party report from the Maryland Office of Financial Regulation, and may contain duplicates or errors. The financial regulation office emphasized that the data may differ from official foreclosure court records, so totals may not perfectly reflect actual foreclosure activity. 
+
+The data updates, but what we have here covers July 2021 to October 2025, roughly four years. Any analysis backed with data would not be ideal outside of this timeframe. 
+
+The dataset does not include demographic, economic or housing characteristics by zip code (like population, income or racial group). To answer questions about income or racial demographics, we will need to join U.S. Census data with the foreclosure dataset. No information about property type, loan type or reasons for foreclosure is included in the original dataframe. Additionally, the dataset provides counts, not rates relative to population or housing units. Again, we'll merge data from ACS to analyze this data properly. 
+
+
+Variables: 
+- 'zip': Every zipcode across Maryland. 
+- When a column has a month followed by an underscore and then the year (ex.: 'july_2021'), it means, in that column, it will include the total number of foreclosure notices that occurred during that specific month and year for each zip code. 
+
+Notes and Caveats: 
+- It's important to note that these are notices of intent to foreclose, even though we may shorten that in code as foreclosure notices or 'foreclose_notice.' These foreclosure notice counts do not equal to foreclosure case records. 
+- Some zip codes have zero foreclosure notices for a month(s), but others may have several. 
+- There is no total amount because the dataset is frequently updated. 
+- Any duplicates or errors may be present. 
+- Last update was Nov. 6, 2025. 
+- Exported this data on Nov. 22, 2025, when the last update still read Nov. 6, 2025. 
+- At a glance, the dataset allows us to:
+  - Calculate the total foreclosures by zipcode. 
+  - Identify trends across months and years.
+  - Compare foreclosure notices between zipcodes.
+  - Create choropleth maps showing foreclosure totals or per capita rates by zip. 
+- The dataset simply holds the totals. It does not include any specific information about the notices of intent to foreclose besides the zip code, month and year. 
+- We will need to join census data for demographic/rate questions. Everything else should be in this dataset.
+  - 'zip' is correctly listed as a character, so this way we can join it easily. If it is needed as a number, then we must change it. 
+  - All the months are listed as a numeric data type. 
+  - We need to make more aggregated dataframes for our analyses. 
+
+
+```{r}
+# Load required data
+# Path to data should be loaded from folder "data" i.e. read_csv("data/name_of_data.csv")
+# Clean required data and prepare for analysis if needed. 
+
+md_foreclosure_notices_zipcode <- read_csv("data/Maryland_Notices_of_Intent_to_Foreclose_by_Zip_Code_20251122.csv") |>
+  clean_names()
+
+view(md_foreclosure_notices_zipcode)
+
+glimpse(md_foreclosure_notices_zipcode)
+```
+
+## Sentences to Code
+In this notebook, we are coding five sentences using the state data.
+
+### Sentence 1
+
+* **Which zipcode has the highest number of foreclosure notices total, and which has the highest rate over the four year period? Where are those areas?**
+* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+
+```{r}
+# Put code here
+md_foreclosure_notices_zipcode |>
+  pivot_longer(cols = contains("_"), names_to = "month", values_to = "foreclosures")
+
+md_foreclosure_notices_zipcode |>
+  group_by(zip) |>
+  summarise(total_amount = sum()) |>
+  arrange(desc(total_amount))
+
+
+
+# Display results of code below this codeblock
+
+```
+
+### Sentence 2
+
+* **What month has the highest number of foreclosure notices? What about year? Are there any differences or similarities between the month that has the highest and the year that has the highest? Why might this be?**
+* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+
+```{r}
+# Put code here
+
+
+# Display results of code below this codeblock
+
+```
+
+### Sentence 3
+
+* **What are the majority racial demographics of zip codes with notably high or low foreclosure rates? How about their median income?**
+* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+
+```{r}
+# Put code here
+
+
+# Display results of code below this codeblock
+
+```
+
+### Sentence 4
+
+* **Which zip codes have had the largest increase in foreclosures from July 2021 to October 2025? Which had the largest decrease? Are these in similar areas?**
+* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+
+```{r}
+# Put code here
+
+
+# Display results of code below this codeblock
+
+```
+
+### Sentence 5
+
+* **How many foreclosures are there in Maryland’s lowest-income zip codes? How many foreclosures in high-income zip codes? Where are these areas located?**
+* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+
+```{r}
+# Put code here
+
+
+# Display results of code below this codeblock
+
+```
+
+
+
+```{r}
+ 
+
+```
+
