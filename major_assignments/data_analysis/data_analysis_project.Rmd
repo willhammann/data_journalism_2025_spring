@@ -89,21 +89,20 @@ In this notebook, we are coding five sentences using the state data.
 ### Sentence 1
 
 * **Which zipcode has the highest number of foreclosure notices total, and which has the highest rate over the four year period? Where are those areas?**
-* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+* **XXXX**: The zip code 20772 had the most notices to foreclose of the dataset at 6,877 and therefore the highest rate of 132.25 notices per month. It's located in Prince George's County and encompasses much of Upper Marlboro. The next highest is the area neighboring directly North, zip code 20774 at 5,856 notices of 112.62 per month. 
 
 ```{r}
 # Put code here
-md_foreclosure_notices_zipcode |>
-  pivot_longer(cols = contains("_"), names_to = "month", values_to = "foreclosures")
-
-md_foreclosure_notices_zipcode |>
+md_forclosures_long <- md_foreclosure_notices_zipcode |>
+  pivot_longer(cols = contains("_"), names_to = "month", values_to = "foreclosures") |>
   group_by(zip) |>
-  summarise(total_amount = sum()) |>
-  arrange(desc(total_amount))
-
-
-
+  summarise(total = sum(foreclosures, na.rm = TRUE),
+            months = n(),
+            avg_per_month = total / months
+  ) |>
+  arrange(desc(total))
 # Display results of code below this codeblock
+md_forclosures_long
 
 ```
 
