@@ -22,6 +22,9 @@ library(tidyverse)
 library(sf)
 library(janitor)
 library(tidycensus)
+library(mapview)
+library(tigris)
+options(tigris_use_cache = TRUE)
 ```
 
 Let's explore Maryland elections, power outages and electric vehicle data and make some maps!
@@ -32,9 +35,43 @@ Let's explore Maryland elections, power outages and electric vehicle data and ma
 
 Get the geometry for Maryland's counties using tigris and, joining that dataframe to your results dataframe, make a county-level map of the differences between Moore and Brown's percentages. What is the story here, and what is the county with the most interesting results?
 
-**A1.**
+**A1.**Prince George's County and Baltimore City were the only places where Brown got a larger share of votes than Moore. Queen Anne's, Kent and Carroll counties saw a much larger share to Moore. This suggests very different strategies for the two campaigns, as the two counties in Brown's favor lean heavily Democrat, the party he ran for. Where Moore made a big difference was counties that are more commonly Republican or at least are swing precincts, so Moore put much more effort campaigning in non-Democratic bases. 
 
 ```{r}
+md_elections <- read_csv("data/md_statewide_county.csv") |>
+  clean_names() |>
+  mutate(
+    geoid = as.character(geoid),
+    gov_total = cox + moore + lashar + wallace + harding + sefcik,
+    pct_moore = moore / gov_total * 100,
+    ag_total = peroutka + brown,
+    pct_brown = brown / ag_total * 100,
+    pct_diff = pct_moore - pct_brown
+  )
+
+md_counties <- counties() |>
+  filter(STATEFP == "24") |>
+  clean_names()
+  
+
+moore_brown <- md_counties |>
+  left_join(md_elections, by = "geoid")
+
+ggplot(moore_brown) +
+  geom_sf(aes(fill=pct_diff)) +
+  scale_fill_gradient2(
+    low = "red",
+    mid = "white",
+    high = "blue",
+    midpoint = 0,
+    limits = c(-2, 8),
+    oob = scales::squish,
+    name = "Moore - Brown (%)"
+  )
+  labs(
+    title = "Difference in Wes Moore and Anthony Brown Vote Percentages",
+    subtitle = "Positive = Moore had more; Negative = Brown had more"
+  )
 ```
 
 **Q2.** Make a county-level map to explore the number of customers impacted by power outages in Maryland from last March. Load the `county_outages_march2023.csv` file in the data folder and calculate a rate of customers with outages per 10,000 total customers for each county. Then join that dataframe to your Maryland counties dataframe you made in Q1 and create a county-level map of the results; you may need to tweak the fill scale to make the distinctions clearer. What's the potential story here? Given access to other months' outage data, what would your next steps be in reporting a story?

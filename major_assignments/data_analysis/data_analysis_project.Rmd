@@ -77,8 +77,6 @@ Notes and Caveats:
 md_foreclosure_notices_zipcode <- read_csv("data/md_foreclosure_notices_zipcode.csv") |>
   clean_names()
 
-View(md_foreclosure_notices_zipcode)
-
 glimpse(md_foreclosure_notices_zipcode)
 ```
 
@@ -203,13 +201,33 @@ largest_decrease
 
 ### Sentence 5
 
-* **How many foreclosures are there in Maryland's lowest-income zip codes? How many foreclosures in high-income zip codes? Where are these areas located?**: [Paste in sentence to code here.]
-* **XXXX**: [Write up two to three sentences describing the results of your analysis.]
+* **How many foreclosures are there in Maryland's lowest-income zip codes? How many foreclosures in high-income zip codes? Where are these areas located?**
+* **XXXX**: In Maryland's ten highest median income zip codes, the number of notices of intent to foreclosure reported over the roughly 4-year time frame tracked by this dataset ranged from about 37 to 314 notices per 10,000 residents. The raw totals ranged from 4 to 558. These zip codes had a minimum household income ranging betwene 228,000 and 250,000 dollars per year. The zip codes are almost all suburbs in Montgomery and Howard counties, with the exception of 21056, which encompasses Gibson's Island outside Annapolis in Anne Arundel County. Comparatively, the 10 lowest median income zip codes saw averages ranging from zero to 653 notices served per 10,000 residents over the same time frame. The raw totals ranged from 0 to 1644 notices reported. Only one zip code had zero notices of intent to foreclose: 20890, which covers what appears to be a mostly-commercial area in Gaithersburg containing a single apartment complex. The zip with the next-lowest rate of foreclosures was 21835, which is located on the Eastern Shore and had a rate of about 130 per 10,000 residents. The low-income zip codes were mostly located in Baltimore, but there were also locations on the Eastern Shore and in Western Maryland. Overall, the lowest-income zip codes had a far higher number of notices of intent to foreclose than the high-income areas. Six out of the 10 lowest-median income zip codes had a rate of more than 400 notices reported per 10,000 residents. 
 
 ```{r}
 # Put code here
 
+county_income <- get_acs(
+  geography = "zcta",
+  variables = c(median_income = "B19013_001",
+                total_pop = "B02001_001"),
+  year = 2022,
+  survey = "acs5",
+  output="wide"
+) |>
+  rename(zip = GEOID) |>
+  mutate(zip = as.character(zip)) 
+
+foreclosures_by_income <- md_foreclosures_summary |> left_join(county_income, join_by(zip)) |> rename(total_foreclosures = total, median_income = median_incomeE, population = total_popE) |> mutate(foreclosure_rate=(total_foreclosures/population)*10000) 
+
+foreclosures_lowest_income <- foreclosures_by_income |> select(zip, total_foreclosures, median_income, population, foreclosure_rate) |> arrange(median_income) 
+
+foreclosures_highest_income <- foreclosures_by_income |> select(zip, total_foreclosures, median_income, population, foreclosure_rate) |> arrange(desc(median_income)) 
 
 # Display results of code below this codeblock
 
+foreclosures_highest_income 
+
+foreclosures_lowest_income
 ```
+
